@@ -1,0 +1,39 @@
+{
+	"author": {
+		"name": "Baptiste Pillot",
+		"email": "baptiste@pillot.fr"
+	},
+	"dependencies": {
+		"@itrocks/ux-core": "latest"
+	},
+	"description": "",
+	"devDependencies": {
+		"typescript": "~5.6"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"exports": "./cjs/output.js",
+	"homepage": "https://it.rocks",
+	"files": [
+		"LICENSE",
+		"README.md",
+		"cjs/*",
+		"!cjs/*.map"
+	],
+	"keywords": [
+		"backend",
+		"it.rocks"
+	],
+	"license": "ISC",
+	"name": "@itrocks/home",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/itrocks-ts/home.git"
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.json && cp src/*.html cjs/"
+	},
+	"types": "./cjs/output.d.ts",
+	"version": "0.0.1"
+}
