@@ -35,5 +35,5 @@
 		"build": "tsc -p tsconfig.json && cp src/*.html cjs/"
 	},
 	"types": "./cjs/output.d.ts",
-	"version": "0.0.1"
+	"version": "0.0.2"
 }
