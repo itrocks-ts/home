@@ -6,7 +6,7 @@
 	"dependencies": {
 		"@itrocks/ux-core": "latest"
 	},
-	"description": "",
+	"description": "Default responsive it.rocks app container with navigation, user session, breadcrumb and notifications",
 	"devDependencies": {
 		"typescript": "~5.6"
 	},
@@ -23,7 +23,17 @@
 	],
 	"keywords": [
 		"backend",
-		"it.rocks"
+		"container",
+		"homepage",
+		"it.rocks",
+		"layout",
+		"minimalist",
+		"navigation",
+		"notifications",
+		"responsive",
+		"template",
+		"UI",
+		"UX"
 	],
 	"license": "ISC",
 	"name": "@itrocks/home",
@@ -35,5 +45,5 @@
 		"build": "tsc -p tsconfig.json && cp src/*.html cjs/"
 	},
 	"types": "./cjs/output.d.ts",
-	"version": "0.0.2"
+	"version": "0.0.3"
 }
