@@ -4,6 +4,9 @@
 		"email": "baptiste@pillot.fr"
 	},
 	"dependencies": {
+		"@itrocks/action": "latest",
+		"@itrocks/action-request": "latest",
+		"@itrocks/route": "latest",
 		"@itrocks/ux-core": "latest"
 	},
 	"description": "Default responsive it.rocks app container with navigation, user session, breadcrumb and notifications",
@@ -45,5 +48,5 @@
 		"build": "tsc -p tsconfig.json && cp src/*.html cjs/"
 	},
 	"types": "./cjs/output.d.ts",
-	"version": "0.0.3"
+	"version": "0.0.4"
 }
