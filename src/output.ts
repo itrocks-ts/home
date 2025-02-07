@@ -11,7 +11,7 @@ export default class Output extends Action
 
 	async html(request: Request)
 	{
-		return this.htmlTemplateResponse(request.object, request, __dirname + '/output.html')
+		return this.htmlTemplateResponse(null, request, __dirname + '/output.html')
 	}
 
 }
