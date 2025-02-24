@@ -22,6 +22,7 @@
 		"LICENSE",
 		"README.md",
 		"cjs/*",
+		"routes.json",
 		"!cjs/*.map"
 	],
 	"keywords": [
@@ -48,5 +49,5 @@
 		"build": "tsc -p tsconfig.json && cp src/*.html cjs/"
 	},
 	"types": "./cjs/output.d.ts",
-	"version": "0.0.5"
+	"version": "0.0.6"
 }
