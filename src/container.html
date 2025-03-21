@@ -14,25 +14,17 @@
 	<div class="main logo"></div>
 </header>
 
-<!--session.user?-->
+<!--session.user-->
 <nav class="app menu">
 	<form autocomplete="off" name="global-search">
 		<label for="global-search">Global search</label>
 		<input id="global-search" name="global-search" placeholder="global search">
 	</form>
 	<div class="authenticated user">
-		<div class="name">Baptiste Pillot</div>
+		<div class="name">{login}</div>
 		<a href="/user/logout">Logout</a>
 	</div>
-	<ul>
-		<li class="administration">
-			<h3>Main module</h3>
-			<ul>
-				<li><a href="/user/list" target="main">User list</a></li>
-				<li><a href="/demo" target="main">Demo objects</a></li>
-			</ul>
-		</li>
-	</ul>
+	<!--.menu-->{../../menu/cjs/menu.html}<!--end-->
 </nav>
 <!--end-->
 

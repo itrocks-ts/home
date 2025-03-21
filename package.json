@@ -6,6 +6,7 @@
 	"dependencies": {
 		"@itrocks/action": "latest",
 		"@itrocks/action-request": "latest",
+		"@itrocks/menu": "latest",
 		"@itrocks/route": "latest",
 		"@itrocks/ux-core": "latest"
 	},
@@ -49,5 +50,5 @@
 		"build": "tsc -p tsconfig.json && cp src/*.html cjs/"
 	},
 	"types": "./cjs/output.d.ts",
-	"version": "0.0.8"
+	"version": "0.0.9"
 }
