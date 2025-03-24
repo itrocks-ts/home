@@ -6,7 +6,7 @@ import { Route }   from '@itrocks/route'
 
 @Need(NOTHING)
 @Route('/')
-export default class Output extends Action
+export class Output extends Action
 {
 
 	async html(request: Request)
