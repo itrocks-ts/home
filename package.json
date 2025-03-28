@@ -47,8 +47,8 @@
 		"url": "git+https://github.com/itrocks-ts/home.git"
 	},
 	"scripts": {
-		"build": "tsc -p tsconfig.json && cp src/*.html cjs/"
+		"build": "tsc && cp src/*.html cjs/"
 	},
 	"types": "./cjs/output.d.ts",
-	"version": "0.0.12"
+	"version": "0.0.13"
 }
