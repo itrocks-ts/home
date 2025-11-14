@@ -1,4 +1,5 @@
-container: /node_modules/@itrocks/home/cjs/container.html
+container:
+  file: /node_modules/@itrocks/home/cjs/container.html
 
 routes:
   /: '@itrocks/home'

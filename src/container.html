@@ -3,42 +3,44 @@
 <head>
 	<link href="../../ux-core/css/app.css" rel="stylesheet">
 	<link href="../../notifications/css/notifications.css" rel="stylesheet">
+	<!--styleSheets--><link href="app://(.)" rel="stylesheet"><!--end-->
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<script src="../../framework/app.js" type="module"></script>
+	<!--scripts--><script src="app://(.)" type="module"></script><!--end-->
 	<title>it.rocks application</title>
 </head>
 <body>
 
-<header>
-	<div class="main logo"></div>
-</header>
+	<header>
+		<div class="main logo"></div>
+	</header>
 
-<!--session.user-->
-<nav class="app menu">
-	<form autocomplete="off" name="global-search">
-		<label for="global-search">Global search</label>
-		<input id="global-search" name="global-search" placeholder="global search">
-	</form>
-	<div class="authenticated user">
-		<div class="name">{login}</div>
-		<a href="/user/logout">Log out</a>
-	</div>
-	<!--.menu-->{../../menu/cjs/menu.html}<!--end-->
-</nav>
-<!--end-->
+	<!--session.user-->
+	<nav class="app menu">
+		<form autocomplete="off" name="global-search">
+			<label for="global-search">Global search</label>
+			<input id="global-search" name="global-search" placeholder="global search">
+		</form>
+		<div class="authenticated user">
+			<div class="name">{login}</div>
+			<a href="/user/logout">Log out</a>
+		</div>
+		<!--.menu-->{../../menu/cjs/menu.html}<!--end-->
+	</nav>
+	<!--end-->
 
-<button class="collapse">collapse</button>
+	<button class="collapse">collapse</button>
 
-<ol class="breadcrumb">
-	<li class="home"><a href="/">Home</a></li>
-</ol>
+	<ol class="breadcrumb">
+		<li class="home"><a href="/">Home</a></li>
+	</ol>
 
-<main>
-	{content}
-</main>
+	<main>
+		{content}
+	</main>
 
-<ol id="notifications"></ol>
+	<ol id="notifications"></ol>
 
 </body>
 </html>
