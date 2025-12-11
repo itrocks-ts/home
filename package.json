@@ -54,5 +54,5 @@
 		"build": "tsc && cp src/*.html cjs/"
 	},
 	"types": "./cjs/output.d.ts",
-	"version": "0.2.2"
+	"version": "0.2.3"
 }
