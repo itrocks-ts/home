@@ -28,17 +28,21 @@
 	],
 	"keywords": [
 		"backend",
+		"component",
 		"container",
 		"homepage",
+		"html",
 		"it.rocks",
 		"layout",
 		"minimalist",
 		"navigation",
 		"notifications",
 		"responsive",
+		"standard",
 		"template",
 		"UI",
-		"UX"
+		"UX",
+		"view"
 	],
 	"license": "ISC",
 	"name": "@itrocks/home",
@@ -50,5 +54,5 @@
 		"build": "tsc && cp src/*.html cjs/"
 	},
 	"types": "./cjs/output.d.ts",
-	"version": "0.2.1"
+	"version": "0.2.2"
 }
