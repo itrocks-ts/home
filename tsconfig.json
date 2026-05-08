@@ -2,13 +2,13 @@
 	"compilerOptions": {
 		"declaration": true,
 		"forceConsistentCasingInFileNames": true,
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"outDir": "./cjs",
+		"module": "nodenext",
+		"outDir": "cjs",
+		"rootDir": "src",
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"target": "ES2022"
+		"types": ["node"]
 	},
-	"include": ["./src"]
+	"include": ["src"]
 }

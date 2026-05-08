@@ -12,10 +12,10 @@
 	},
 	"description": "Default responsive it.rocks app container with navigation, user session, breadcrumb and notifications",
 	"devDependencies": {
-		"typescript": "~5.9"
+		"typescript": "^6.0"
 	},
 	"engines": {
-		"node": ">=18"
+		"node": ">=24"
 	},
 	"exports": "./cjs/output.js",
 	"homepage": "https://it.rocks",
@@ -53,6 +53,5 @@
 	"scripts": {
 		"build": "tsc && cp src/*.html cjs/"
 	},
-	"types": "./cjs/output.d.ts",
-	"version": "0.3.0"
+	"version": "0.3.1"
 }
