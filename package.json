@@ -6,7 +6,9 @@
 	"dependencies": {
 		"@itrocks/action": "latest",
 		"@itrocks/action-request": "latest",
+		"@itrocks/framework": "latest",
 		"@itrocks/menu": "latest",
+		"@itrocks/notifications": "latest",
 		"@itrocks/route": "latest",
 		"@itrocks/ux-core": "latest"
 	},
@@ -54,5 +56,5 @@
 	"scripts": {
 		"build": "tsc && node -e \"const fs=require('node:fs'),path=require('node:path');for(const file of fs.readdirSync('src'))if(file.endsWith('.html'))fs.copyFileSync(path.join('src',file),path.join('cjs',file))\""
 	},
-	"version": "0.4.1"
+	"version": "0.4.2"
 }
