@@ -1,0 +1,12 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"module": "esnext",
+		"outDir": "../..",
+		"rootDir": ".",
+		"sourceMap": false,
+		"target": "es2022"
+	},
+	"exclude": [],
+	"include": ["."]
+}

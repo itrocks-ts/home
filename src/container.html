@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 	<link href="../../ux-core/css/app.css" rel="stylesheet">
+	<link href="../right-pane.css" rel="stylesheet">
 	<link href="../../notifications/css/notifications.css" rel="stylesheet">
 	<!--styleSheets--><link href="app://(.)" rel="stylesheet"><!--end-->
 	<meta charset="utf-8">
@@ -15,6 +16,7 @@
 	<!--end-->
 	<script type="importmap"> { "imports": { "@itrocks/": "/@itrocks/" } } </script>
 	<script src="../../framework/app.js" type="module"></script>
+	<script src="../container.js" type="module"></script>
 	<!--scripts--><script src="app://(.)" type="module"></script><!--end-->
 	<title>it.rocks application</title>
 </head>
@@ -49,6 +51,16 @@
 	</main>
 
 	<ol id="notifications"></ol>
+
+	<div class="right-pane-dock"></div>
+	<aside class="right-pane" aria-labelledby="right-pane-title" hidden tabindex="-1">
+		<header>
+			<button aria-controls="right-pane-content" aria-expanded="false" class="right-pane-toggle" hidden
+				type="button"><span aria-hidden="true">‹</span><span class="right-pane-label">Open pane</span></button>
+			<h2 id="right-pane-title"></h2>
+		</header>
+		<div id="right-pane-content"></div>
+	</aside>
 
 </body>
 </html>

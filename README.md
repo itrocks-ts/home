@@ -54,8 +54,7 @@ navigation, breadcrumb and notifications correctly).
 
 ## API
 
-The public API of `@itrocks/home` is intentionally small. It exposes a
-single `Output` action class.
+The backend API exposes `Output`. The browser API provides a [generic right pane](#generic-right-pane).
 
 ### `class Output extends Action`
 
@@ -75,7 +74,7 @@ From the generated JavaScript you can see that it is decorated with:
 Builds the HTML response for the home page.
 
 ```ts
-import { Output } from '@itrocks/home/cjs/output.js'
+import { Output } from '@itrocks/home'
 import type { Request } from '@itrocks/action-request'
 
 const output = new Output()
@@ -109,3 +108,51 @@ HTML shell of your application.
 - Share the same home layout across multiple projects by reusing the
   `@itrocks/home` module and, if needed, slightly overriding the
   template.
+
+## Generic right pane
+
+The default container loads `container.js` and `right-pane.css`. Its single movable command appears when arbitrary
+content is registered. New content starts folded. Desktop opening reduces the main region's width; mobile opening
+occupies the screen, contains keyboard focus and temporarily makes the remaining shell inert. Mobile uses the shared
+600 px breakpoint, plus coarse pointers in landscape at heights up to 480 px.
+
+```ts
+import { rightPaneOf } from '@itrocks/home/right-pane.js'
+
+const content = document.createElement('section')
+content.textContent = 'Your content'
+const pane = rightPaneOf()
+const handle = pane.register({}, content, 'Details')
+const unsubscribe = handle.subscribe(state => console.log(state))
+handle.open()
+const temporaryFold = handle.suspend()
+temporaryFold.restore()
+handle.close()
+unsubscribe()
+handle.remove()
+```
+
+`rightPaneOf(container = document.body): RightPane` returns the service for a configured home container. A custom
+container must preserve `.right-pane`, `.right-pane-dock`, `.right-pane-toggle`, `#right-pane-title` and
+`#right-pane-content`, including the command's label/icon children. Importing the API has no activation side effects.
+`new RightPane(container)` explicitly constructs a service and rejects duplicate construction for the same container.
+`dispose()` removes content and listeners, invalidates outstanding handles/tokens and permits a fresh service.
+
+`register(owner: object, content: HTMLElement, title: string): PaneHandle` moves the element into the pane. A competing
+owner throws `PaneOccupiedError`. The same owner may update title/content through repeated registration while folded
+and unsuspended, retaining its handle. Open or suspended registrations reject replacement. Call `remove()` when the
+owning view is disposed or navigated away from; it is idempotent and allows the next owner to register.
+
+`PaneHandle` exposes `open()`, `close()`, `remove()`, `suspend()` and `subscribe(listener)`. Subscriptions immediately
+receive `{ present, open, suspended }`, then receive changes synchronously, including the final absent state on removal.
+The returned unsubscribe function removes the listener. A removed handle cannot affect another owner.
+`open` describes visible presentation; a suspended handle is folded even if it was previously open.
+
+Nested `suspend()` calls return independent, idempotent `{ restore() }` tokens. The final valid restoration recovers the
+preceding open and scroll state without focusing content. Explicit `open()` or `close()` during suspension updates the
+requested final state. Removal/disposal makes old tokens harmless. Folding preserves the content element and its input,
+scroll and application state. Explicit close and Escape focus the visible movable command.
+
+Pane colours use system colours and support light/dark schemes. `--pane-background`, `--pane-border` and `--pane-color`
+allow theme overrides. The pane introduces no animated motion. The browser API imports no framework, selector or model
+adapter. The backend root export remains `Output`.

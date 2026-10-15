@@ -1,0 +1,120 @@
+body:has(> .right-pane) {
+	--right-pane-width: 0px;
+	grid-template-areas:
+		"header collapse breadcrumb pane"
+		"header main main pane"
+		"menu main main pane"
+		"footer footer footer pane";
+	grid-template-columns: min-content min-content minmax(0, 1fr) var(--right-pane-width);
+
+	> #notifications {
+		right: 3.5rem;
+	}
+
+	> main {
+		min-height: 0;
+		min-width: 0;
+		overflow: auto;
+	}
+
+	&.right-pane-open {
+		--right-pane-width: min(24rem, 45vw);
+	}
+
+	> .breadcrumb {
+		flex-wrap: nowrap;
+		min-width: 0;
+		overflow-x: auto;
+		padding-right: 3.5rem;
+	}
+}
+
+.right-pane-dock {
+	position: fixed;
+	right: .5rem;
+	top: .25rem;
+	z-index: 20;
+}
+
+.right-pane {
+	background: var(--pane-background, Canvas);
+	border-left: 1px solid var(--pane-border, GrayText);
+	color: var(--pane-color, CanvasText);
+	color-scheme: light dark;
+	display: flex;
+	flex-direction: column;
+	grid-area: pane;
+	min-height: 0;
+	min-width: 0;
+	overflow: hidden;
+	z-index: 21;
+
+	&[hidden] {
+		display: none;
+	}
+
+	> header {
+		align-items: center;
+		display: flex;
+		flex: none;
+		gap: .5rem;
+		min-width: 0;
+		padding: .25rem;
+
+		> h2 {
+			font-size: 1.125rem;
+			margin: 0;
+			min-width: 0;
+			overflow-wrap: anywhere;
+		}
+	}
+
+	> #right-pane-content {
+		min-height: 0;
+		overflow: auto;
+		overscroll-behavior: contain;
+		padding: .5rem;
+	}
+}
+
+.right-pane-toggle {
+	background: var(--pane-background, Canvas);
+	border: 1px solid var(--pane-border, GrayText);
+	border-radius: .25rem;
+	color: var(--pane-color, CanvasText);
+	color-scheme: light dark;
+	cursor: pointer;
+	flex: none;
+	font-size: 1.5rem;
+	min-height: 44px;
+	min-width: 44px;
+
+	&:focus-visible {
+		outline: 3px solid Highlight;
+		outline-offset: 2px;
+	}
+
+	&[hidden] {
+		display: none;
+	}
+
+	> .right-pane-label {
+		clip-path: inset(50%);
+		height: 1px;
+		overflow: hidden;
+		position: absolute;
+		width: 1px;
+	}
+}
+
+@media (max-width: 600px), (pointer: coarse) and (max-height: 480px) {
+	body:has(> .right-pane).right-pane-open {
+		--right-pane-width: 0px;
+	}
+
+	.right-pane {
+		border: 0;
+		inset: 0;
+		position: fixed;
+	}
+}

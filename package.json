@@ -15,19 +15,30 @@
 	"description": "Default responsive it.rocks app container with navigation, user session, breadcrumb and notifications",
 	"devDependencies": {
 		"@types/node": "^24.10",
+		"sass": "^1.95",
 		"typescript": "^7.0"
 	},
 	"engines": {
 		"node": ">=24"
 	},
-	"exports": "./cjs/output.js",
+	"exports": {
+		".": "./cjs/output.js",
+		"./right-pane.css": "./right-pane.css",
+		"./right-pane.js": {
+			"types": "./right-pane.d.ts",
+			"default": "./right-pane.js"
+		}
+	},
 	"homepage": "https://it.rocks",
 	"files": [
-		"config.yaml",
+		"!**/*.map",
+		"/*.css",
+		"/*.d.ts",
+		"/*.js",
 		"LICENSE",
 		"README.md",
 		"cjs/*",
-		"!*.map"
+		"config.yaml"
 	],
 	"keywords": [
 		"backend",
@@ -54,7 +65,10 @@
 		"url": "git+https://github.com/itrocks-ts/home.git"
 	},
 	"scripts": {
-		"build": "tsc && node -e \"const fs=require('node:fs'),path=require('node:path');for(const file of fs.readdirSync('src'))if(file.endsWith('.html'))fs.copyFileSync(path.join('src',file),path.join('cjs',file))\""
+		"build": "npm run build:cjs && npm run build:front && npm run build:css",
+		"build:cjs": "tsc && node -e \"const fs=require('node:fs'),path=require('node:path');for(const file of fs.readdirSync('src'))if(file.endsWith('.html'))fs.copyFileSync(path.join('src',file),path.join('cjs',file))\"",
+		"build:front": "tsc -p src/front/tsconfig.json",
+		"build:css": "sass --no-source-map src/right-pane.scss:right-pane.css"
 	},
-	"version": "0.4.2"
+	"version": "0.5.0"
 }
