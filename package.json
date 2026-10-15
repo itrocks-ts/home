@@ -31,13 +31,14 @@
 	},
 	"homepage": "https://it.rocks",
 	"files": [
-		"!**/*.map",
 		"/*.css",
 		"/*.d.ts",
 		"/*.js",
 		"LICENSE",
 		"README.md",
-		"cjs/*",
+		"cjs/*.d.ts",
+		"cjs/*.html",
+		"cjs/*.js",
 		"config.yaml"
 	],
 	"keywords": [
@@ -70,5 +71,5 @@
 		"build:front": "tsc -p src/front/tsconfig.json",
 		"build:css": "sass --no-source-map src/right-pane.scss:right-pane.css"
 	},
-	"version": "0.5.0"
+	"version": "0.5.1"
 }
