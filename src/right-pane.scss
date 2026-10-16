@@ -213,6 +213,16 @@ body:has(> .right-pane) {
 	}
 }
 
+@media (max-width: 600px) {
+	body:has(> .right-pane):not(.expand) {
+		grid-template-columns: 0 24px minmax(0, 1fr) 0;
+
+		> .app.menu {
+			display: none;
+		}
+	}
+}
+
 @media (max-width: 600px), (pointer: coarse) and (max-height: 480px) {
 	body:has(> .right-pane).right-pane-open {
 		--right-pane-width: 0px;

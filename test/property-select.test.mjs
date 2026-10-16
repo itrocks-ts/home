@@ -11,6 +11,27 @@ const bridge = readFileSync(new URL('../container.js', import.meta.url), 'utf8')
 const shell = readFileSync(new URL('../cjs/container.html', import.meta.url), 'utf8')
 	.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/<link\b[^>]*>/g, '')
 const css = readFileSync(new URL('../right-pane.css', import.meta.url), 'utf8')
+const appCss = readFileSync(new URL('../../ux-core/css/app.css', import.meta.url), 'utf8')
+const menuCss = readFileSync(new URL('../../menu/css/menu.css', import.meta.url), 'utf8')
+
+test('PANE-07: collapsed mobile menu stays hidden and expands on request', async () => {
+	const browser = await chromium.launch({ chromiumSandbox: true, headless: true })
+	try {
+		const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+		await page.setContent(shell)
+		await page.addStyleTag({ content: appCss + css + menuCss })
+		const menu = page.locator('body > .app.menu')
+		assert.equal(await menu.isVisible(), false)
+		assert.equal(await page.locator('body').evaluate(element =>
+			getComputedStyle(element).gridTemplateColumns.split(' ')[0]), '0px')
+		await page.locator('body').evaluate(element => element.classList.add('expand'))
+		assert.equal(await menu.isVisible(), true)
+		assert.ok(await menu.evaluate(element => element.getBoundingClientRect().width) > 300)
+		await page.locator('body').evaluate(element => element.classList.remove('expand'))
+		assert.equal(await menu.isVisible(), false)
+	}
+	finally { await browser.close() }
+})
 
 test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive shell', async () => {
 	const browser = await chromium.launch({ chromiumSandbox: true, headless: true })
