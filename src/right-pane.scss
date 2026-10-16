@@ -214,6 +214,10 @@ body:has(> .right-pane) {
 }
 
 @media (max-width: 600px) {
+	body.expand > .right-pane-dock {
+		display: none;
+	}
+
 	body:has(> .right-pane):not(.expand) {
 		grid-template-columns: 0 24px minmax(0, 1fr) 0;
 

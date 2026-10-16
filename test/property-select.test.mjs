@@ -20,15 +20,26 @@ test('PANE-07: collapsed mobile menu stays hidden and expands on request', async
 		const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
 		await page.setContent(shell)
 		await page.addStyleTag({ content: appCss + css + menuCss })
+		await page.evaluate(async source => {
+			const { rightPaneOf } = await import(`data:text/javascript,${encodeURIComponent(source)}`)
+			rightPaneOf().register({}, document.createElement('div'), 'Details')
+		}, source)
 		const menu = page.locator('body > .app.menu')
+		const paneCommand = page.locator('.right-pane-dock')
 		assert.equal(await menu.isVisible(), false)
+		assert.equal(await paneCommand.isVisible(), true)
 		assert.equal(await page.locator('body').evaluate(element =>
 			getComputedStyle(element).gridTemplateColumns.split(' ')[0]), '0px')
 		await page.locator('body').evaluate(element => element.classList.add('expand'))
 		assert.equal(await menu.isVisible(), true)
+		assert.equal(await paneCommand.isVisible(), false)
 		assert.ok(await menu.evaluate(element => element.getBoundingClientRect().width) > 300)
 		await page.locator('body').evaluate(element => element.classList.remove('expand'))
 		assert.equal(await menu.isVisible(), false)
+		assert.equal(await paneCommand.isVisible(), true)
+		await page.setViewportSize({ width: 1280, height: 720 })
+		await page.locator('body').evaluate(element => element.classList.add('expand'))
+		assert.equal(await paneCommand.isVisible(), true)
 	}
 	finally { await browser.close() }
 })
