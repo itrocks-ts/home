@@ -79,7 +79,14 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 			return records
 		}, { source, bridge })
 		assert.ok(records.length >= 16)
+		await page.evaluate(() => {
+			window.mobileToken = window.paneFixture.handle.suspend({ mobileOnly: true })
+			if (document.querySelector('.right-pane').hidden) throw new Error('Desktop must remain open')
+		})
 		await page.setViewportSize({ width: 390, height: 844 })
+		await page.waitForFunction(() => document.querySelector('.right-pane').hidden)
+		assert.equal(await page.locator('main').evaluate(node => node.inert), false)
+		await page.evaluate(() => window.mobileToken.restore())
 		await page.waitForFunction(() => document.querySelector('main').inert)
 		assert.equal(await page.locator('.right-pane').getAttribute('aria-modal'), 'true')
 		await page.locator('.right-pane-toggle').focus()

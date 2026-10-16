@@ -119,3 +119,14 @@ body:has(> .right-pane) {
 		position: fixed;
 	}
 }
+
+@media (prefers-reduced-motion: no-preference) {
+	.right-pane:not([hidden]) {
+		animation: right-pane-open 120ms ease-out;
+	}
+}
+
+@keyframes right-pane-open {
+	from { opacity: .7; }
+	to { opacity: 1; }
+}

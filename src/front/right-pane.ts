@@ -6,7 +6,7 @@ export interface PaneHandle {
 	open(): void
 	remove(): void
 	subscribe(listener: (state: PaneState) => void): () => void
-	suspend(): { restore(): void }
+	suspend(options?: { mobileOnly?: boolean }): { restore(): void }
 }
 
 type Registration = {
@@ -16,7 +16,7 @@ type Registration = {
 	open: boolean
 	owner: object
 	scroll: number
-	tokens: Set<object>
+	tokens: Set<{ mobileOnly?: boolean }>
 }
 
 const panes = new WeakMap<HTMLElement, RightPane>()
@@ -87,10 +87,10 @@ export class RightPane
 	}
 
 	private keydown = (event: KeyboardEvent): void => {
-		if (!this.registration?.open || this.registration.tokens.size) return
+		if (!this.state().open) return
 		if (event.key === 'Escape') {
 			event.preventDefault()
-			this.registration.handle.close()
+			this.registration?.handle.close()
 		}
 		if (!this.mobile.matches || event.key !== 'Tab') return
 		const controls = [...this.pane.querySelectorAll<HTMLElement>(
@@ -161,8 +161,8 @@ export class RightPane
 				listener(current() ? this.state() : { present: false, open: false, suspended: false })
 				return () => { registration.listeners.delete(listener) }
 			},
-			suspend: () => {
-				const token = {}
+			suspend: (options = {}) => {
+				const token = { mobileOnly: options.mobileOnly }
 				if (current()) {
 					registration.tokens.add(token)
 					this.render()
@@ -224,8 +224,8 @@ export class RightPane
 	private state(): PaneState
 	{
 		const registration = this.registration
-		return { present: !!registration, open: !!registration?.open && !registration.tokens.size,
-			suspended: !!registration?.tokens.size }
+		const suspended = [...registration?.tokens ?? []].some(token => !token.mobileOnly || this.mobile.matches)
+		return { present: !!registration, open: !!registration?.open && !suspended, suspended }
 	}
 
 	private toggle = (): void => {

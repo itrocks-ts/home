@@ -148,13 +148,16 @@ receive `{ present, open, suspended }`, then receive changes synchronously, incl
 The returned unsubscribe function removes the listener. A removed handle cannot affect another owner.
 `open` describes visible presentation; a suspended handle is folded even if it was previously open.
 
+`suspend({ mobileOnly: true })` reserves a token that folds only in the pane's mobile layout. The same token follows
+viewport/orientation changes; desktop stays interactive and open. Omission preserves unconditional suspension.
 Nested `suspend()` calls return independent, idempotent `{ restore() }` tokens. The final valid restoration recovers the
 preceding open and scroll state without focusing content. Explicit `open()` or `close()` during suspension updates the
 requested final state. Removal/disposal makes old tokens harmless. Folding preserves the content element and its input,
 scroll and application state. Explicit close and Escape focus the visible movable command.
 
 Pane colours use system colours and support light/dark schemes. `--pane-background`, `--pane-border` and `--pane-color`
-allow theme overrides. The pane introduces no animated motion. The browser API imports no framework, selector or model
+allow theme overrides. The pane fades in over 120 ms unless reduced motion is requested.
+The browser API imports no framework, selector or model
 adapter. The backend root export remains `Output`.
 
 The configured `container.js` announces `itrocks:right-pane-ready` on `document`, with a structurally typed
