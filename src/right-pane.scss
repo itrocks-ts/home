@@ -22,18 +22,17 @@ body:has(> .right-pane) {
 	}
 
 	> .breadcrumb {
-		min-height: 3.5rem;
 		flex-wrap: nowrap;
 		min-width: 0;
 		overflow-x: auto;
-		padding-right: 3.5rem;
+		padding-right: 24px;
 	}
 }
 
 .right-pane-dock {
 	position: fixed;
-	right: .5rem;
-	top: .25rem;
+	right: 0;
+	top: 0;
 	z-index: 20;
 }
 
@@ -79,16 +78,19 @@ body:has(> .right-pane) {
 }
 
 .right-pane-toggle {
-	background: var(--pane-background, Canvas);
-	border: 1px solid var(--pane-border, GrayText);
-	border-radius: .25rem;
-	color: var(--pane-color, CanvasText);
-	color-scheme: light dark;
+	background: #eee url('../ux-core/css/action/back.svg') center no-repeat;
+	border: 0;
+	border-radius: 0;
 	cursor: pointer;
 	flex: none;
-	font-size: 1.5rem;
-	min-height: 44px;
-	min-width: 44px;
+	font-size: 0;
+	height: 28px;
+	width: 24px;
+
+	&[aria-expanded='false'] {
+		background-image: url('../ux-core/css/action/back.svg');
+		transform: scaleX(-1);
+	}
 
 	&:focus-visible {
 		outline: 3px solid Highlight;
