@@ -135,8 +135,9 @@ handle.remove()
 ```
 
 `rightPaneOf(container = document.body): RightPane` returns the service for a configured home container. A custom
-container must preserve `.right-pane`, `.right-pane-dock`, `.right-pane-resize`, `.right-pane-toggle`,
-`.right-pane-tab`, `#right-pane-title` and `#right-pane-content`, including the command's label/icon children.
+container must preserve `.right-pane`, `.right-pane-resize`, `.right-pane-tab`, `#right-pane-title` and
+`#right-pane-content`. The fold command is a single `<button>` with both `.right-pane-dock` and
+`.right-pane-toggle`, with its label as direct text.
 Importing the API has no activation side effects.
 `new RightPane(container)` explicitly constructs a service and rejects duplicate construction for the same container.
 `dispose()` removes content and listeners, invalidates outstanding handles/tokens and permits a fresh service.

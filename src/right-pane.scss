@@ -29,7 +29,7 @@ body:has(> .right-pane) {
 	}
 }
 
-.right-pane-dock {
+.right-pane-dock.right-pane-toggle {
 	position: fixed;
 	right: 0;
 	top: 0;
@@ -90,7 +90,9 @@ body:has(> .right-pane) {
 		}
 
 		> .right-pane-toggle {
+			position: relative;
 			width: 24px;
+			z-index: auto;
 		}
 
 		> .right-pane-tab {
@@ -153,12 +155,24 @@ body:has(> .right-pane) {
 	border-radius: 0;
 	cursor: pointer;
 	flex: none;
-	font-size: 20px;
+	font-size: 0;
 	height: 28px;
-	line-height: 27px;
 	padding: 0;
+	position: relative;
 	text-align: center;
 	width: 24px;
+	&::before {
+		background: url('../ux-core/css/action/back.svg') center / 24px 24px no-repeat;
+		content: '';
+		inset: 0;
+		pointer-events: none;
+		position: absolute;
+	}
+
+	&[aria-expanded='true']::before {
+		transform: scaleX(-1);
+	}
+
 	&:hover {
 		background-color: #ddd;
 	}
@@ -174,14 +188,6 @@ body:has(> .right-pane) {
 
 	&[hidden] {
 		display: none;
-	}
-
-	> .right-pane-label {
-		clip-path: inset(50%);
-		height: 1px;
-		overflow: hidden;
-		position: absolute;
-		width: 1px;
 	}
 }
 

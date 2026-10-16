@@ -28,6 +28,8 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 			const service = rightPaneOf()
 			const command = document.querySelector('.right-pane-toggle')
 			check('empty command hidden', command.hidden)
+			check('dock is one button with direct text', command === document.querySelector('.right-pane-dock')
+				&& command.tagName === 'BUTTON' && command.children.length === 0 && command.textContent === 'Open pane')
 			const registrations = []
 			document.addEventListener('itrocks:right-pane-ready', event => registrations.push(event.detail.register))
 			await import(`data:text/javascript,${encodeURIComponent(bridge.replace("'./right-pane.js'",
@@ -40,6 +42,8 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 			const handle = registrations[1](owner, content, 'Arbitrary content')
 			const states = [], unsubscribe = handle.subscribe(state => states.push(state))
 			check('new content folded', !command.hidden && states.at(-1).open === false)
+			check('folded command docks at right edge', getComputedStyle(command).position === 'fixed'
+				&& command.getBoundingClientRect().right === innerWidth)
 			check('one shared service', service === rightPaneOf())
 			let refused = false
 			try { service.register({}, document.createElement('div'), 'Foreign') }
@@ -47,6 +51,9 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 			check('competing owner refused', refused)
 			handle.open()
 			check('command moved', command.parentElement === document.querySelector('.right-pane > header'))
+			check('open command anchors its icon', getComputedStyle(command).position === 'relative'
+				&& getComputedStyle(command, '::before').backgroundImage.includes('back.svg'))
+			check('open label is direct text', command.children.length === 0 && command.textContent === 'Close pane')
 			check('fold command remains visible', command.getBoundingClientRect().width >= 24
 				&& command.getBoundingClientRect().height >= 28)
 			check('desktop main interactive', !document.querySelector('main').inert)
@@ -64,6 +71,9 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 			check('restoration never focuses input', document.activeElement !== content.firstElementChild)
 			handle.close()
 			check('explicit close focuses visible command', document.activeElement === command && !command.hidden)
+			check('closed command returned to shell', command.parentElement === document.body
+				&& command.nextElementSibling === document.querySelector('.right-pane')
+				&& command.textContent === 'Open pane')
 			check('same owner inactive update retains handle', service.register(owner, content, 'Updated') === handle)
 			check('updated title', document.querySelector('#right-pane-title').textContent === 'Updated')
 			handle.open()
@@ -122,7 +132,7 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 		await page.keyboard.press('Shift+Tab')
 		assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Choice')
 		await page.keyboard.press('Tab')
-		assert.equal(await page.evaluate(() => document.activeElement.className), 'right-pane-toggle')
+		assert.equal(await page.evaluate(() => document.activeElement.classList.contains('right-pane-toggle')), true)
 		await page.keyboard.press('Escape')
 		assert.equal(await page.locator('main').evaluate(node => node.inert), false)
 		await page.evaluate(() => {

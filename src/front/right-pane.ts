@@ -48,7 +48,6 @@ export class RightPane
 	private readonly command: HTMLButtonElement
 	private readonly content: HTMLElement
 	private disposed = false
-	private readonly dock: HTMLElement
 	private readonly heading: HTMLElement
 	private readonly inert = new Map<HTMLElement, boolean>()
 	private readonly mobile = matchMedia('(max-width: 600px), (pointer: coarse) and (max-height: 480px)')
@@ -69,7 +68,6 @@ export class RightPane
 		}
 		this.command = required('.right-pane-toggle')
 		this.content = required('#right-pane-content')
-		this.dock    = required('.right-pane-dock')
 		this.heading = required('#right-pane-title')
 		this.pane    = required('.right-pane')
 		this.resizer = required('.right-pane-resize')
@@ -219,10 +217,12 @@ export class RightPane
 		if (open && !this.mobile.matches) this.updateResizeValue()
 		this.command.setAttribute('aria-expanded', String(open))
 		this.command.setAttribute('aria-label', `${open ? 'Close' : 'Open'} ${this.heading.textContent || 'pane'}`)
-		this.command.querySelector('.right-pane-label')!.textContent = open ? 'Close pane' : 'Open pane'
-		this.command.querySelector('[aria-hidden]')!.textContent = open ? '›' : '‹'
-		const destination = open ? this.tabs : this.dock
-		if (this.command.parentElement !== destination) destination.prepend(this.command)
+		this.command.textContent = open ? 'Close pane' : 'Open pane'
+		const destination = open ? this.tabs : this.container
+		if (this.command.parentElement !== destination) {
+			if (open) this.tabs.prepend(this.command)
+			else this.pane.before(this.command)
+		}
 		if (open && !wasOpen && this.registration) this.content.scrollTop = this.registration.scroll
 		for (const [element, inert] of this.inert) element.inert = inert
 		this.inert.clear()
