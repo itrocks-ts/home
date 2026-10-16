@@ -71,5 +71,5 @@
 		"build:front": "tsc -p src/front/tsconfig.json",
 		"build:css": "sass --no-source-map src/right-pane.scss:right-pane.css"
 	},
-	"version": "0.5.1"
+	"version": "0.6.0"
 }

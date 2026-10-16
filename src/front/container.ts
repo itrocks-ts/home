@@ -1,4 +1,10 @@
 import { rightPaneOf } from './right-pane.js'
 
-// A configured home container owns the service; consumers use this public factory.
-rightPaneOf()
+const pane = rightPaneOf()
+const announce = () => document.dispatchEvent(new CustomEvent('itrocks:right-pane-ready', {
+	detail: { register: pane.register.bind(pane) }
+}))
+
+// Replay on request so configured consumers can activate in either module-loading order.
+document.addEventListener('itrocks:right-pane-request', announce)
+announce()

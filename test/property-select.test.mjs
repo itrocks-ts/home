@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url)
 const { chromium } = require(process.env.PS_PLAYWRIGHT_MODULE
 	|| '/home/baptiste/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
 const source = readFileSync(new URL('../right-pane.js', import.meta.url), 'utf8')
+const bridge = readFileSync(new URL('../container.js', import.meta.url), 'utf8')
 const shell = readFileSync(new URL('../cjs/container.html', import.meta.url), 'utf8')
 	.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/<link\b[^>]*>/g, '')
 const css = readFileSync(new URL('../right-pane.css', import.meta.url), 'utf8')
@@ -17,7 +18,7 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 		const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 		await page.setContent(shell)
 		await page.addStyleTag({ content: 'body { display:grid; height:100vh; margin:0 }' + css })
-		const records = await page.evaluate(async source => {
+		const records = await page.evaluate(async ({ source, bridge }) => {
 			const { PaneOccupiedError, rightPaneOf } = await import(`data:text/javascript,${encodeURIComponent(source)}`)
 			const records = []
 			const check = (name, condition) => {
@@ -27,9 +28,16 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 			const service = rightPaneOf()
 			const command = document.querySelector('.right-pane-toggle')
 			check('empty command hidden', command.hidden)
+			const registrations = []
+			document.addEventListener('itrocks:right-pane-ready', event => registrations.push(event.detail.register))
+			await import(`data:text/javascript,${encodeURIComponent(bridge.replace("'./right-pane.js'",
+				JSON.stringify(`data:text/javascript,${encodeURIComponent(source)}`)))}`)
+			document.dispatchEvent(new Event('itrocks:right-pane-request'))
+			check('container announces and replays narrow registration', registrations.length === 2
+				&& registrations.every(register => typeof register === 'function'))
 			const owner = {}, content = document.createElement('div')
 			content.innerHTML = '<input value="remember"><button>Choice</button><div style="height:1800px"></div>'
-			const handle = service.register(owner, content, 'Arbitrary content')
+			const handle = registrations[1](owner, content, 'Arbitrary content')
 			const states = [], unsubscribe = handle.subscribe(state => states.push(state))
 			check('new content folded', !command.hidden && states.at(-1).open === false)
 			check('one shared service', service === rightPaneOf())
@@ -69,7 +77,7 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 			next.open()
 			window.paneFixture = { handle: next, service }
 			return records
-		}, source)
+		}, { source, bridge })
 		assert.ok(records.length >= 16)
 		await page.setViewportSize({ width: 390, height: 844 })
 		await page.waitForFunction(() => document.querySelector('main').inert)

@@ -156,3 +156,8 @@ scroll and application state. Explicit close and Escape focus the visible movabl
 Pane colours use system colours and support light/dark schemes. `--pane-background`, `--pane-border` and `--pane-color`
 allow theme overrides. The pane introduces no animated motion. The browser API imports no framework, selector or model
 adapter. The backend root export remains `Output`.
+
+The configured `container.js` announces `itrocks:right-pane-ready` on `document`, with a structurally typed
+`detail.register(owner, content, title)` callback bound to its pane. Consumers may dispatch `itrocks:right-pane-request`
+to replay the announcement, so either script loading order works. This bridge imports no consumer or framework module.
+The breadcrumb reserves enough height for the movable command, keeping controls in the first main header accessible.
