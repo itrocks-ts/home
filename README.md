@@ -111,10 +111,12 @@ HTML shell of your application.
 
 ## Generic right pane
 
-The default container loads `container.js` and `right-pane.css`. Its single movable command appears when arbitrary
-content is registered. New content starts folded. Desktop opening reduces the main region's width; mobile opening
-occupies the screen, contains keyboard focus and temporarily makes the remaining shell inert. Mobile uses the shared
-600 px breakpoint, plus coarse pointers in landscape at heights up to 480 px.
+The default container loads `container.js` and `right-pane.css`. Its movable fold command and selected feature tab
+appear when content is registered. New content starts folded. Desktop opening reduces the main region's width;
+mobile opening occupies the screen, contains keyboard focus and temporarily makes the remaining shell inert.
+Mobile uses the shared 600 px breakpoint, plus coarse pointers in landscape at heights up to 480 px.
+On desktop, drag the pane's left edge to resize it. The separator also supports the left and right arrow keys;
+the selected width remains in place when the pane is folded and reopened.
 
 ```ts
 import { rightPaneOf } from '@itrocks/home/right-pane.js'
@@ -133,8 +135,9 @@ handle.remove()
 ```
 
 `rightPaneOf(container = document.body): RightPane` returns the service for a configured home container. A custom
-container must preserve `.right-pane`, `.right-pane-dock`, `.right-pane-toggle`, `#right-pane-title` and
-`#right-pane-content`, including the command's label/icon children. Importing the API has no activation side effects.
+container must preserve `.right-pane`, `.right-pane-dock`, `.right-pane-resize`, `.right-pane-toggle`,
+`.right-pane-tab`, `#right-pane-title` and `#right-pane-content`, including the command's label/icon children.
+Importing the API has no activation side effects.
 `new RightPane(container)` explicitly constructs a service and rejects duplicate construction for the same container.
 `dispose()` removes content and listeners, invalidates outstanding handles/tokens and permits a fresh service.
 
@@ -155,8 +158,9 @@ preceding open and scroll state without focusing content. Explicit `open()` or `
 requested final state. Removal/disposal makes old tokens harmless. Folding preserves the content element and its input,
 scroll and application state. Explicit close and Escape focus the visible movable command.
 
-Pane colours use system colours and support light/dark schemes. `--pane-background`, `--pane-border` and `--pane-color`
-allow theme overrides. The pane fades in over 120 ms unless reduced motion is requested.
+The pane uses the application's light palette, with a feature bar aligned to the application breadcrumb,
+a title bar aligned to list actions and a grey separator.
+The pane fades in over 120 ms unless reduced motion is requested.
 The browser API imports no framework, selector or model
 adapter. The backend root export remains `Output`.
 

@@ -47,6 +47,8 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 			check('competing owner refused', refused)
 			handle.open()
 			check('command moved', command.parentElement === document.querySelector('.right-pane > header'))
+			check('fold command remains visible', command.getBoundingClientRect().width >= 24
+				&& command.getBoundingClientRect().height >= 28)
 			check('desktop main interactive', !document.querySelector('main').inert)
 			refused = false
 			try { service.register(owner, content, 'Active replacement') } catch { refused = true }
@@ -79,12 +81,39 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 			return records
 		}, { source, bridge })
 		assert.ok(records.length >= 16)
+		const resizer = page.locator('.right-pane-resize')
+		assert.equal(await resizer.evaluate(element => getComputedStyle(element).cursor), 'ew-resize')
+		const initialWidth = await page.locator('.right-pane').evaluate(element => element.getBoundingClientRect().width)
+		const bounds = await resizer.boundingBox()
+		await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + 100)
+		await page.mouse.down()
+		await page.mouse.move(bounds.x - 120, bounds.y + 100, { steps: 5 })
+		await page.mouse.up()
+		const widened = await page.locator('.right-pane').evaluate(element => element.getBoundingClientRect().width)
+		assert.ok(widened > initialWidth + 100)
+		assert.equal(await page.locator('body').evaluate(element =>
+			element.classList.contains('right-pane-resizing')), false)
+		const newBounds = await resizer.boundingBox()
+		await page.mouse.move(newBounds.x + newBounds.width / 2, newBounds.y + 100)
+		await page.mouse.down()
+		await page.mouse.move(newBounds.x + 100, newBounds.y + 100, { steps: 5 })
+		await page.mouse.up()
+		const narrowed = await page.locator('.right-pane').evaluate(element => element.getBoundingClientRect().width)
+		assert.ok(narrowed < widened - 80)
+		await resizer.focus()
+		await page.keyboard.press('ArrowLeft')
+		const keyboardWidth = await page.locator('.right-pane').evaluate(element => element.getBoundingClientRect().width)
+		assert.ok(keyboardWidth > narrowed)
+		await page.evaluate(() => { window.paneFixture.handle.close(); window.paneFixture.handle.open() })
+		assert.equal(await page.locator('.right-pane').evaluate(element => element.getBoundingClientRect().width),
+			keyboardWidth)
 		await page.evaluate(() => {
 			window.mobileToken = window.paneFixture.handle.suspend({ mobileOnly: true })
 			if (document.querySelector('.right-pane').hidden) throw new Error('Desktop must remain open')
 		})
 		await page.setViewportSize({ width: 390, height: 844 })
 		await page.waitForFunction(() => document.querySelector('.right-pane').hidden)
+		assert.equal(await resizer.isVisible(), false)
 		assert.equal(await page.locator('main').evaluate(node => node.inert), false)
 		await page.evaluate(() => window.mobileToken.restore())
 		await page.waitForFunction(() => document.querySelector('main').inert)

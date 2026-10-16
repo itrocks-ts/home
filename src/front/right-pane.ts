@@ -53,6 +53,10 @@ export class RightPane
 	private readonly inert = new Map<HTMLElement, boolean>()
 	private readonly mobile = matchMedia('(max-width: 600px), (pointer: coarse) and (max-height: 480px)')
 	private readonly pane: HTMLElement
+	private readonly resizer: HTMLElement
+	private resizePointer?: number
+	private readonly tab: HTMLButtonElement
+	private readonly tabs: HTMLElement
 	private registration?: Registration
 
 	constructor(private readonly container: HTMLElement)
@@ -68,7 +72,17 @@ export class RightPane
 		this.dock    = required('.right-pane-dock')
 		this.heading = required('#right-pane-title')
 		this.pane    = required('.right-pane')
+		this.resizer = required('.right-pane-resize')
+		this.tab     = required('.right-pane-tab')
+		this.tabs    = required('.right-pane-tabs')
 		this.command.addEventListener('click', this.toggle)
+		this.resizer.addEventListener('pointerdown', this.resizeStart)
+		this.resizer.addEventListener('pointermove', this.resizeMove)
+		this.resizer.addEventListener('pointerup', this.resizeEnd)
+		this.resizer.addEventListener('pointercancel', this.resizeEnd)
+		this.resizer.addEventListener('lostpointercapture', this.resizeEnd)
+		this.resizer.addEventListener('keydown', this.resizeKeydown)
+		this.tab.addEventListener('click', this.select)
 		this.container.addEventListener('keydown', this.keydown)
 		this.mobile.addEventListener('change', this.responsive)
 		this.render()
@@ -80,7 +94,15 @@ export class RightPane
 		if (this.disposed) return
 		this.registration?.handle.remove()
 		this.disposed = true
+		this.finishResize()
 		this.command.removeEventListener('click', this.toggle)
+		this.resizer.removeEventListener('pointerdown', this.resizeStart)
+		this.resizer.removeEventListener('pointermove', this.resizeMove)
+		this.resizer.removeEventListener('pointerup', this.resizeEnd)
+		this.resizer.removeEventListener('pointercancel', this.resizeEnd)
+		this.resizer.removeEventListener('lostpointercapture', this.resizeEnd)
+		this.resizer.removeEventListener('keydown', this.resizeKeydown)
+		this.tab.removeEventListener('click', this.select)
 		this.container.removeEventListener('keydown', this.keydown)
 		this.mobile.removeEventListener('change', this.responsive)
 		panes.delete(this.container)
@@ -186,15 +208,20 @@ export class RightPane
 	{
 		const wasOpen = !this.pane.hidden
 		const { open, present } = this.state()
+		if (!open || this.mobile.matches) this.finishResize()
 		if (!this.pane.hidden && !open && this.registration) this.registration.scroll = this.content.scrollTop
 		this.pane.hidden    = !open
 		this.command.hidden = !present
+		this.tab.hidden     = !present
+		this.tab.textContent = this.heading.textContent
+		this.tab.setAttribute('aria-label', this.heading.textContent || 'Pane')
 		this.container.classList.toggle('right-pane-open', open)
+		if (open && !this.mobile.matches) this.updateResizeValue()
 		this.command.setAttribute('aria-expanded', String(open))
 		this.command.setAttribute('aria-label', `${open ? 'Close' : 'Open'} ${this.heading.textContent || 'pane'}`)
 		this.command.querySelector('.right-pane-label')!.textContent = open ? 'Close pane' : 'Open pane'
 		this.command.querySelector('[aria-hidden]')!.textContent = open ? '›' : '‹'
-		const destination = open ? this.heading.parentElement! : this.dock
+		const destination = open ? this.tabs : this.dock
 		if (this.command.parentElement !== destination) destination.prepend(this.command)
 		if (open && !wasOpen && this.registration) this.content.scrollTop = this.registration.scroll
 		for (const [element, inert] of this.inert) element.inert = inert
@@ -221,6 +248,57 @@ export class RightPane
 			this.command.focus({ preventScroll: true })
 	}
 
+	private finishResize(): void
+	{
+		if (this.resizePointer === undefined) return
+		const pointer = this.resizePointer
+		this.resizePointer = undefined
+		this.container.classList.remove('right-pane-resizing')
+		if (this.resizer.hasPointerCapture(pointer)) this.resizer.releasePointerCapture(pointer)
+	}
+
+	private resizeEnd = (event: PointerEvent): void => {
+		if (event.pointerId === this.resizePointer) this.finishResize()
+	}
+
+	private resizeKeydown = (event: KeyboardEvent): void => {
+		if (this.mobile.matches || !this.state().open) return
+		const width = this.pane.getBoundingClientRect().width
+		const next = event.key === 'ArrowLeft' ? width + 10 : event.key === 'ArrowRight' ? width - 10
+			: event.key === 'Home' ? 180 : event.key === 'End' ? this.container.clientWidth - 180 : undefined
+		if (next === undefined) return
+		event.preventDefault()
+		this.setWidth(next)
+	}
+
+	private resizeMove = (event: PointerEvent): void => {
+		if (event.pointerId !== this.resizePointer) return
+		this.setWidth(this.container.getBoundingClientRect().right - event.clientX)
+	}
+
+	private resizeStart = (event: PointerEvent): void => {
+		if (this.mobile.matches || !this.state().open || event.button !== 0 || this.resizePointer !== undefined) return
+		event.preventDefault()
+		this.resizePointer = event.pointerId
+		this.resizer.setPointerCapture(event.pointerId)
+		this.container.classList.add('right-pane-resizing')
+	}
+
+	private setWidth(width: number): void
+	{
+		const max = Math.max(180, this.container.clientWidth - 180)
+		const limited = Math.round(Math.min(max, Math.max(180, width)))
+		this.container.style.setProperty('--right-pane-custom-width', `${limited}px`)
+		this.updateResizeValue()
+	}
+
+	private updateResizeValue(): void
+	{
+		this.resizer.setAttribute('aria-valuemin', '180')
+		this.resizer.setAttribute('aria-valuemax', String(Math.max(180, this.container.clientWidth - 180)))
+		this.resizer.setAttribute('aria-valuenow', String(Math.round(this.pane.getBoundingClientRect().width)))
+	}
+
 	private state(): PaneState
 	{
 		const registration = this.registration
@@ -232,6 +310,10 @@ export class RightPane
 		const handle = this.registration?.handle
 		if (this.state().open) handle?.close()
 		else handle?.open()
+	}
+
+	private select = (): void => {
+		if (!this.state().open) this.registration?.handle.open()
 	}
 
 }

@@ -54,11 +54,16 @@
 
 	<div class="right-pane-dock"></div>
 	<aside class="right-pane" aria-labelledby="right-pane-title" hidden tabindex="-1">
-		<header>
+		<div aria-label="Resize right pane" aria-orientation="vertical" class="right-pane-resize" role="separator"
+			tabindex="0"></div>
+		<header class="right-pane-tabs">
 			<button aria-controls="right-pane-content" aria-expanded="false" class="right-pane-toggle" hidden
 				type="button"><span aria-hidden="true">‹</span><span class="right-pane-label">Open pane</span></button>
-			<h2 id="right-pane-title"></h2>
+			<button aria-controls="right-pane-content" aria-current="page" class="right-pane-tab" type="button"></button>
 		</header>
+		<div class="right-pane-title-bar">
+			<h2 id="right-pane-title"></h2>
+		</div>
 		<div id="right-pane-content"></div>
 	</aside>
 
