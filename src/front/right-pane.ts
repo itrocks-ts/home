@@ -82,6 +82,7 @@ export class RightPane
 		this.resizer.addEventListener('keydown', this.resizeKeydown)
 		this.tab.addEventListener('click', this.select)
 		this.container.addEventListener('keydown', this.keydown)
+		this.container.addEventListener('transitionend', this.transitionEnd)
 		this.mobile.addEventListener('change', this.responsive)
 		this.render()
 		panes.set(container, this)
@@ -102,6 +103,7 @@ export class RightPane
 		this.resizer.removeEventListener('keydown', this.resizeKeydown)
 		this.tab.removeEventListener('click', this.select)
 		this.container.removeEventListener('keydown', this.keydown)
+		this.container.removeEventListener('transitionend', this.transitionEnd)
 		this.mobile.removeEventListener('change', this.responsive)
 		panes.delete(this.container)
 	}
@@ -209,6 +211,7 @@ export class RightPane
 		if (!open || this.mobile.matches) this.finishResize()
 		if (!this.pane.hidden && !open && this.registration) this.registration.scroll = this.content.scrollTop
 		this.pane.hidden    = !open
+		this.pane.inert     = !open
 		this.command.hidden = !present
 		this.tab.hidden     = !present
 		this.tab.textContent = this.heading.textContent
@@ -297,6 +300,11 @@ export class RightPane
 		this.resizer.setAttribute('aria-valuemin', '180')
 		this.resizer.setAttribute('aria-valuemax', String(Math.max(180, this.container.clientWidth - 180)))
 		this.resizer.setAttribute('aria-valuenow', String(Math.round(this.pane.getBoundingClientRect().width)))
+	}
+
+	private transitionEnd = (event: TransitionEvent): void => {
+		if (event.target === this.container && event.propertyName === 'grid-template-columns'
+			&& this.state().open && !this.mobile.matches) this.updateResizeValue()
 	}
 
 	private state(): PaneState

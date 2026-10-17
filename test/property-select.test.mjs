@@ -47,7 +47,7 @@ test('PANE-07: collapsed mobile menu stays hidden and expands on request', async
 test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive shell', async () => {
 	const browser = await chromium.launch({ chromiumSandbox: true, headless: true })
 	try {
-		const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
+		const page = await browser.newPage({ reducedMotion: 'reduce', viewport: { width: 1280, height: 720 } })
 		await page.setContent(shell)
 		await page.addStyleTag({ content: 'body { display:grid; height:100vh; margin:0 }' + css })
 		const records = await page.evaluate(async ({ source, bridge }) => {
@@ -177,3 +177,73 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 	}
 	finally { await browser.close() }
 })
+
+for (const width of [390, 1280]) {
+	test(`pane opens and folds progressively like the left menu at ${width}px`, async () => {
+		const browser = await chromium.launch({ chromiumSandbox: true, headless: true })
+		try {
+			const page = await browser.newPage({ reducedMotion: 'no-preference', viewport: { width, height: 844 } })
+			await page.setContent(shell)
+			await page.addStyleTag({ content: appCss + css + menuCss })
+			const result = await page.evaluate(async source => {
+				const { rightPaneOf } = await import(`data:text/javascript,${encodeURIComponent(source)}`)
+				const content = document.createElement('div')
+				content.innerHTML = '<input value="preserved"><div style="height:1800px"></div>'
+				const handle = rightPaneOf().register({}, content, 'Details')
+				const pane = document.querySelector('.right-pane')
+				const main = document.querySelector('main')
+				const viewport = document.querySelector('#right-pane-content')
+				const frame = () => new Promise(resolve => requestAnimationFrame(resolve))
+				const sample = () => ({
+					main: main.getBoundingClientRect().width,
+					pane: pane.getBoundingClientRect().width,
+					visible: getComputedStyle(pane).visibility === 'visible'
+				})
+				const measure = async action => {
+					sample()
+					action()
+					const animations = document.getAnimations()
+					const motion = animations.find(animation => animation.transitionProperty !== 'visibility')
+					if (!motion) throw new Error('Missing width transition')
+					const timing = motion.effect.getTiming()
+					const samples = [0, 50, 100].map(time => {
+						for (const animation of animations) { animation.pause(); animation.currentTime = time }
+						return sample()
+					})
+					for (const animation of animations) animation.finish()
+					await frame()
+					return { samples, duration: timing.duration, easing: timing.easing }
+				}
+				await frame()
+				const opening = await measure(() => handle.open())
+				viewport.scrollTop = 145
+				const closing = await measure(() => handle.close())
+				const closedInert = pane.inert
+				const closingFocus = document.activeElement === document.querySelector('.right-pane-toggle')
+				const reopening = await measure(() => handle.open())
+				const scroll = viewport.scrollTop
+				const menu = getComputedStyle(document.querySelector('.app.menu'))
+				return { opening, closing, reopening, closedInert, closingFocus, scroll,
+					menuDuration: parseFloat(menu.transitionDuration) * 1000, menuEasing: menu.transitionTimingFunction }
+			}, source)
+			for (const motion of [result.opening, result.closing, result.reopening]) {
+				assert.equal(motion.duration, result.menuDuration)
+				assert.equal(motion.easing, result.menuEasing)
+				const [start, middle, end] = motion.samples.map(sample => sample.pane)
+				assert.ok(middle > Math.min(start, end) && middle < Math.max(start, end))
+			}
+			assert.ok(result.opening.samples[0].pane < result.opening.samples[2].pane)
+			assert.ok(result.closing.samples[0].pane > result.closing.samples[2].pane)
+			assert.equal(result.closing.samples[1].visible, true)
+			assert.equal(result.closing.samples[2].visible, false)
+			assert.equal(result.closedInert, true)
+			assert.equal(result.closingFocus, true)
+			assert.equal(result.scroll, 145)
+			if (width > 600) {
+				const [start, middle, end] = result.opening.samples.map(sample => sample.main)
+				assert.ok(start > middle && middle > end)
+			}
+		}
+		finally { await browser.close() }
+	})
+}

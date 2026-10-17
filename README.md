@@ -161,7 +161,7 @@ scroll and application state. Explicit close and Escape focus the visible movabl
 
 The pane uses the application's light palette, with a feature bar aligned to the application breadcrumb,
 a title bar aligned to list actions and a grey separator.
-The pane fades in over 120 ms unless reduced motion is requested.
+The pane opens and folds over 100 ms with the same easing as the left menu, unless reduced motion is requested.
 The browser API imports no framework, selector or model
 adapter. The backend root export remains `Output`.
 
