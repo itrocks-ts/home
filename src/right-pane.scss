@@ -41,6 +41,7 @@ body:has(> .right-pane) {
 	--right-pane-title-height: 37px;
 	background: #fff;
 	border-left: 1px solid #ccc;
+	box-shadow: -4px 0 10px rgb(0 0 0 / 12%);
 	color: #444;
 	display: flex;
 	flex-direction: column;
@@ -124,7 +125,7 @@ body:has(> .right-pane) {
 	}
 
 	&:has(.property-select) {
-		box-shadow: inset 4px 0 #fff, inset 5px 0 #ccc;
+		box-shadow: -4px 0 10px rgb(0 0 0 / 12%), inset 4px 0 #fff, inset 5px 0 #ccc;
 		padding-left: 5px;
 
 		> #right-pane-content {
