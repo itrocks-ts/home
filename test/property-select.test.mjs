@@ -178,6 +178,205 @@ test('PANE-01–04/06: actual browser lifecycle, occupancy, focus and responsive
 	finally { await browser.close() }
 })
 
+test('folded replacement, subscriptions and stale handles preserve the pane lifecycle', async () => {
+	const browser = await chromium.launch({ chromiumSandbox: true, headless: true })
+	try {
+		const page = await browser.newPage({ reducedMotion: 'reduce', viewport: { width: 1280, height: 720 } })
+		await page.setContent(shell)
+		await page.addStyleTag({ content: 'body { display:grid; height:100vh; margin:0 }' + css })
+		const result = await page.evaluate(async source => {
+			const { PaneOccupiedError, RightPane, rightPaneOf } = await import(
+				`data:text/javascript,${encodeURIComponent(source)}`
+			)
+			const service = rightPaneOf(), owner = {}, content = document.createElement('div')
+			const handle = service.register(owner, content, 'First')
+			const states = [], unsubscribe = handle.subscribe(state => states.push(state))
+			const replacement = document.createElement('input')
+			replacement.value = 'preserved'
+			const sameHandle = service.register(owner, replacement, '') === handle
+			const updatedContent = document.querySelector('#right-pane-content').firstElementChild === replacement
+			const emptyTitle = document.querySelector('.right-pane-tab').getAttribute('aria-label') === 'Pane'
+			const token = handle.suspend({ mobileOnly: true })
+			let occupied = false
+			try { service.register(owner, content, 'Suspended replacement') }
+			catch (error) { occupied = error instanceof PaneOccupiedError }
+			token.restore()
+			unsubscribe()
+			const unsubscribedCount = states.length
+			handle.open()
+			const unsubscribed = states.length === unsubscribedCount
+			handle.subscribe(state => states.push(state))
+			replacement.focus()
+			const main = document.querySelector('main')
+			main.setAttribute('tabindex', '3')
+			handle.remove()
+			const removalFocus = document.activeElement === main && main.getAttribute('tabindex') === '3'
+			let staleState
+			handle.subscribe(state => { staleState = state })
+			const next = service.register({}, content, 'Next')
+			next.open()
+			handle.close()
+			handle.open()
+			handle.remove()
+			handle.suspend().restore()
+			token.restore()
+			const staleHarmless = !document.querySelector('.right-pane').hidden
+			service.dispose()
+			service.dispose()
+			let disposed = false
+			try { service.register({}, content, 'Disposed') } catch { disposed = true }
+			const fresh = rightPaneOf()
+			let duplicate = false
+			try { new RightPane(document.body) } catch { duplicate = true }
+			const freshHandle = fresh.register({}, content, 'Fresh')
+			const freshStates = []
+			freshHandle.subscribe(state => freshStates.push(state))
+			document.querySelector('.right-pane-toggle').click()
+			const freshOpen = !document.querySelector('.right-pane').hidden && freshStates.length === 2
+			fresh.dispose()
+			return { disposed, duplicate, emptyTitle, freshOpen, occupied, removalFocus, sameHandle,
+				staleHarmless, staleState, states, unsubscribed, updatedContent }
+		}, source)
+		for (const [name, value] of Object.entries(result)) {
+			if (name !== 'staleState' && name !== 'states') assert.equal(value, true, name)
+		}
+		const absent = { present: false, open: false, suspended: false }
+		assert.deepEqual(result.staleState, absent)
+		assert.deepEqual(result.states, [
+			{ present: true, open: false, suspended: false },
+			{ present: true, open: false, suspended: false },
+			{ present: true, open: false, suspended: false },
+			{ present: true, open: false, suspended: false },
+			{ present: true, open: true, suspended: false },
+			absent
+		])
+	}
+	finally { await browser.close() }
+})
+
+test('resize bounds, cancellation and disposal release pointer capture', async () => {
+	const browser = await chromium.launch({ chromiumSandbox: true, headless: true })
+	try {
+		const page = await browser.newPage({ reducedMotion: 'reduce', viewport: { width: 1280, height: 720 } })
+		await page.setContent(shell)
+		await page.addStyleTag({ content: 'body { display:grid; height:100vh; margin:0 }' + css })
+		await page.evaluate(async source => {
+			const { rightPaneOf } = await import(`data:text/javascript,${encodeURIComponent(source)}`)
+			const service = rightPaneOf(), handle = service.register({}, document.createElement('div'), 'Resize')
+			handle.open()
+			window.resizeFixture = { handle, service }
+			document.querySelector('.right-pane-resize').addEventListener('pointerdown', event => {
+				window.resizeFixture.pointer = event.pointerId
+			})
+		}, source)
+		const resizer = page.locator('.right-pane-resize')
+		await resizer.focus()
+		for (const [key, value] of [['Home', 180], ['ArrowRight', 180], ['End', 1100], ['ArrowLeft', 1100]]) {
+			await page.keyboard.press(key)
+			assert.equal(await resizer.getAttribute('aria-valuenow'), String(value), key)
+		}
+		await page.keyboard.press('Home')
+		for (const action of ['pointercancel', 'lostpointercapture', 'close', 'mobile', 'dispose']) {
+			const bounds = await resizer.boundingBox()
+			await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + 100)
+			await page.mouse.down()
+			await page.mouse.move(bounds.x + bounds.width / 2 + 2, bounds.y + 100)
+			assert.equal(await page.locator('body').evaluate(element =>
+				element.classList.contains('right-pane-resizing')), true, action)
+			if (action === 'mobile') await page.setViewportSize({ width: 390, height: 844 })
+			else await page.evaluate(action => {
+				const { handle, pointer, service } = window.resizeFixture
+				const resizer = document.querySelector('.right-pane-resize')
+				if (action === 'close') handle.close()
+				else if (action === 'dispose') service.dispose()
+				else if (action === 'lostpointercapture') resizer.releasePointerCapture(pointer)
+				else resizer.dispatchEvent(new PointerEvent(action, { pointerId: pointer }))
+			}, action)
+			if (action === 'lostpointercapture') await page.mouse.move(bounds.x + bounds.width / 2 + 1, bounds.y + 100)
+			await page.waitForFunction(() => !document.body.classList.contains('right-pane-resizing'), null,
+				{ timeout: 2000 }).catch(error => { throw new Error(`Resize still active after ${action}`, { cause: error }) })
+			assert.equal(await resizer.evaluate(element =>
+				element.hasPointerCapture(window.resizeFixture.pointer)), false, action)
+			await page.mouse.up()
+			if (action === 'mobile') {
+				await page.setViewportSize({ width: 1280, height: 720 })
+				await page.waitForFunction(() => !document.querySelector('main').inert)
+			}
+			if (action === 'close') await page.evaluate(() => window.resizeFixture.handle.open())
+		}
+	}
+	finally { await browser.close() }
+})
+
+test('suspensions retain requested state and restore mobile focus and pre-existing inert regions', async () => {
+	const browser = await chromium.launch({ chromiumSandbox: true, headless: true })
+	try {
+		const page = await browser.newPage({ reducedMotion: 'reduce', viewport: { width: 390, height: 844 } })
+		await page.setContent(shell)
+		await page.addStyleTag({ content: 'body { display:grid; height:100vh; margin:0 }' + css })
+		await page.evaluate(async source => {
+			const { rightPaneOf } = await import(`data:text/javascript,${encodeURIComponent(source)}`)
+			const service = rightPaneOf(), content = document.createElement('div')
+			content.innerHTML = '<input value="preserved"><div style="height:1800px"></div>'
+			const handle = service.register({}, content, 'Details'), states = []
+			handle.subscribe(state => states.push(state))
+			document.querySelector('body > header').inert = true
+			handle.open()
+			document.querySelector('#right-pane-content').scrollTop = 145
+			const first = handle.suspend(), second = handle.suspend({ mobileOnly: true })
+			handle.close()
+			first.restore()
+			first.restore()
+			second.restore()
+			if (states.at(-1).open) throw new Error('Close during suspension must remain closed')
+			const token = handle.suspend()
+			handle.open()
+			if (states.at(-1).open) throw new Error('Open during suspension must remain suspended')
+			token.restore()
+			if (document.querySelector('#right-pane-content').scrollTop !== 145) throw new Error('Lost scroll')
+			window.lifecycle = { handle, service, states, token: handle.suspend({ mobileOnly: true }) }
+		}, source)
+		assert.equal(await page.locator('main').evaluate(element => element.inert), false)
+		assert.equal(await page.locator('body > header').evaluate(element => element.inert), true)
+		await page.setViewportSize({ width: 1280, height: 720 })
+		await page.waitForFunction(() => !document.querySelector('.right-pane').hidden)
+		assert.equal(await page.locator('.right-pane').getAttribute('aria-modal'), null)
+		await page.locator('main').evaluate(element => { element.tabIndex = -1; element.focus() })
+		await page.evaluate(() => window.lifecycle.token.restore())
+		await page.setViewportSize({ width: 390, height: 844 })
+		await page.waitForFunction(() => document.querySelector('main').inert)
+		assert.equal(await page.locator('.right-pane-toggle').evaluate(element => document.activeElement === element), true)
+		await page.evaluate(() => window.lifecycle.service.dispose())
+		assert.equal(await page.locator('main').evaluate(element => element.inert), false)
+		assert.equal(await page.locator('body > header').evaluate(element => element.inert), true)
+	}
+	finally { await browser.close() }
+})
+
+test('touch landscape uses the mobile dialog above the width breakpoint', async () => {
+	const browser = await chromium.launch({ chromiumSandbox: true, headless: true })
+	try {
+		const page = await browser.newPage({ hasTouch: true, viewport: { width: 844, height: 390 } })
+		await page.setContent(shell)
+		await page.addStyleTag({ content: css })
+		await page.evaluate(async source => {
+			const { rightPaneOf } = await import(`data:text/javascript,${encodeURIComponent(source)}`)
+			const handle = rightPaneOf().register({}, document.createElement('input'), 'Landscape')
+			handle.open()
+			window.landscapeToken = handle.suspend({ mobileOnly: true })
+		}, source)
+		assert.equal(await page.locator('.right-pane').evaluate(element => element.hidden), true)
+		await page.evaluate(() => window.landscapeToken.restore())
+		assert.equal(await page.locator('.right-pane').getAttribute('role'), 'dialog')
+		assert.equal(await page.locator('.right-pane').getAttribute('aria-modal'), 'true')
+		assert.equal(await page.locator('main').evaluate(element => element.inert), true)
+		assert.equal(await page.locator('.right-pane-resize').isVisible(), false)
+		await page.keyboard.press('Escape')
+		assert.equal(await page.locator('main').evaluate(element => element.inert), false)
+	}
+	finally { await browser.close() }
+})
+
 for (const width of [390, 1280]) {
 	test(`pane opens and folds progressively like the left menu at ${width}px`, async () => {
 		const browser = await chromium.launch({ chromiumSandbox: true, headless: true })
