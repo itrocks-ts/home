@@ -18,7 +18,7 @@ body:has(> .right-pane) {
 	}
 
 	&.right-pane-open {
-		--right-pane-width: clamp(180px, var(--right-pane-custom-width, min(24rem, 45vw)), calc(100vw - 180px));
+		--right-pane-width: clamp(180px, var(--right-pane-custom-width, 200px), calc(100vw - 180px));
 	}
 
 	> .breadcrumb {
