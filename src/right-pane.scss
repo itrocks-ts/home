@@ -177,10 +177,6 @@ body:has(> .right-pane) {
 		background-color: #ddd;
 	}
 
-	&[aria-expanded='false'] {
-		border-left: 1px solid #ccc;
-	}
-
 	&:focus-visible {
 		outline: 3px solid Highlight;
 		outline-offset: 2px;
