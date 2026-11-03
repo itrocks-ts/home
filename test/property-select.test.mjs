@@ -31,11 +31,12 @@ test('PANE-07: collapsed mobile menu stays hidden and expands on request', async
 		assert.equal(await page.locator('body').evaluate(element =>
 			getComputedStyle(element).gridTemplateColumns.split(' ')[0]), '0px')
 		await page.locator('body').evaluate(element => element.classList.add('expand'))
-		assert.equal(await menu.isVisible(), true)
+		await menu.waitFor({ state: 'visible' })
 		assert.equal(await paneCommand.isVisible(), false)
-		assert.ok(await menu.evaluate(element => element.getBoundingClientRect().width) > 300)
+		await page.waitForFunction(() => document.querySelector('body > .app.menu').getBoundingClientRect().width > 300)
 		await page.locator('body').evaluate(element => element.classList.remove('expand'))
-		assert.equal(await menu.isVisible(), false)
+		await menu.waitFor({ state: 'hidden' })
+		assert.equal(await menu.evaluate(element => element.getBoundingClientRect().width), 0)
 		assert.equal(await paneCommand.isVisible(), true)
 		await page.setViewportSize({ width: 1280, height: 720 })
 		await page.locator('body').evaluate(element => element.classList.add('expand'))
@@ -423,7 +424,7 @@ for (const width of [390, 1280]) {
 				const scroll = viewport.scrollTop
 				const menu = getComputedStyle(document.querySelector('.app.menu'))
 				return { opening, closing, reopening, closedInert, closingFocus, scroll,
-					menuDuration: parseFloat(menu.transitionDuration) * 1000, menuEasing: menu.transitionTimingFunction }
+					menuDuration: parseFloat(menu.transitionDuration) * 1000, menuEasing: menu.transitionTimingFunction.split(',')[0] }
 			}, source)
 			for (const motion of [result.opening, result.closing, result.reopening]) {
 				assert.equal(motion.duration, result.menuDuration)

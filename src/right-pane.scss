@@ -22,7 +22,9 @@ body:has(> .right-pane) {
 	}
 
 	> .breadcrumb {
-		flex-wrap: nowrap;
+		@media (min-width: 601px) {
+			flex-wrap: nowrap;
+		}
 		min-width: 0;
 		overflow-x: auto;
 		padding-right: 24px;
@@ -213,14 +215,6 @@ body:has(> .right-pane) {
 	body.expand > .right-pane-dock {
 		display: none;
 	}
-
-	body:has(> .right-pane):not(.expand) {
-		grid-template-columns: 0 24px minmax(0, 1fr) 0;
-
-		> .app.menu {
-			display: none;
-		}
-	}
 }
 
 @media (max-width: 600px), (pointer: coarse) and (max-height: 480px) {
@@ -254,6 +248,16 @@ body:has(> .right-pane) {
 
 		&[hidden] {
 			transition-delay: 0s, .1s;
+
+			// The live button moves back to the page as soon as closing starts.
+			> .right-pane-tabs:has(> .right-pane-tab:not([hidden]))::before {
+				background: url('../ux-core/css/action/back.svg') center / 24px 24px no-repeat;
+				border-left: 1px solid #ccc;
+				content: '';
+				flex: 0 0 36px;
+				height: 28px;
+				transform: scaleX(-1);
+			}
 		}
 	}
 }
